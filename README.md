@@ -53,7 +53,6 @@ bookmark-hider/
 ├── popup.html/js       — toggle UI
 ├── recovery.html/js    — export saved bookmarks as HTML
 ├── uninstall.html      — GitHub Pages uninstall page
-├── generate-icons.html — one-time tool to generate icon PNGs
 └── icons/              — on/off icons at 16/48/128px
 ```
 

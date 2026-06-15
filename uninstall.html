@@ -221,18 +221,19 @@
 
         <!-- Cảnh báo: gỡ trong khi đang ON -->
         <div class="danger-box" id="dangerBox">
-            <div class="danger-title">⚠️ Your bookmarks are still hidden!</div>
+            <div class="danger-title">⚠️ Your bookmarks are gone!</div>
             <p>
                 You uninstalled while the extension was <strong>ON</strong> — your bookmarks
-                were deleted from Chrome but the data is still saved in
-                <code>chrome.storage.local</code>.
+                were deleted from Chrome and the saved data was removed along with the extension.
                 <br><br>
-                <strong>To recover:</strong> Reinstall the extension → open it → click
-                <strong>"Show Bookmarks"</strong>. Your full bookmark structure will be restored.
+                <strong>Reinstalling will NOT recover them.</strong>
+                <br><br>
+                If you previously used the <strong>Recovery tool</strong> to export a backup file,
+                you can reimport it via <strong>chrome://bookmarks → ⋮ → Import bookmarks</strong>.
+                <br><br>
+                Next time, click <strong>"Show Bookmarks"</strong> before uninstalling — or use
+                the Recovery tool to export a backup first.
             </p>
-            <a href="https://chrome.google.com/webstore" class="btn-recover" target="_blank">
-                🔁 Reinstall Extension
-            </a>
         </div>
 
         <!-- An toàn: gỡ khi đang OFF -->
