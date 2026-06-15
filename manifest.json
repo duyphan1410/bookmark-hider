@@ -1,0 +1,29 @@
+{
+    "manifest_version": 3,
+    "name": "Bookmark Hider",
+    "version": "1.0",
+    "description": "Hide bookmark suggestions from Chrome omnibox with one click",
+    "permissions": [
+        "storage",
+        "bookmarks",
+        "tabs",
+        "downloads"
+    ],
+    "background": {
+        "service_worker": "background.js"
+    },
+    "action": {
+        "default_popup": "popup.html",
+        "default_icon": {
+            "16": "icons/off-16.png",
+            "48": "icons/off-48.png",
+            "128": "icons/off-128.png"
+        },
+        "default_title": "Bookmark Hider"
+    },
+    "icons": {
+        "16": "icons/off-16.png",
+        "48": "icons/off-48.png",
+        "128": "icons/off-128.png"
+    }
+}
