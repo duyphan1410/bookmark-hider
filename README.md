@@ -8,28 +8,54 @@ Chrome always suggests bookmarks when you type in the address bar — there's no
 
 ## How it works
 
-- **Hide:** Serializes your entire bookmark tree to local storage, then deletes all bookmarks from Chrome. The omnibox no longer suggests them.
-- **Restore:** Recreates all bookmarks from the saved data, restoring the exact folder structure.
+- **Hide:** Reads your entire bookmark tree, saves it to `chrome.storage.local`, then deletes all bookmarks from Chrome. The omnibox no longer suggests them.
+- **Restore:** Recreates all bookmarks from the saved data, restoring the exact folder structure including nested folders.
 
-> ⚠️ Your bookmarks are never permanently deleted — they're stored safely in `chrome.storage.local`. But it's recommended to **export a backup** via `chrome://bookmarks → ⋮ → Export bookmarks` before first use.
+> ⚠️ Before using for the first time, export a manual backup via `chrome://bookmarks → ⋮ → Export bookmarks`.
 
 ## Installation
 
 1. Clone or download this repo
 2. Open `chrome://extensions`
 3. Enable **Developer mode**
-4. Click **Load unpacked** → select the `bookmark-hider/` folder
+4. Click **Load unpacked** → select this folder
 
 ## Usage
 
-Click the extension icon in the toolbar → toggle **Hide / Show Bookmarks**
+Click the extension icon in the toolbar:
+
+- **Hide Bookmarks** — deletes bookmarks from Chrome, saves data locally
+- **Show Bookmarks** — recreates all bookmarks from saved data
+- **🛟 Recovery tool** — appears when bookmarks are hidden; lets you export saved data as an HTML file in case you need to uninstall
+
+## Safety
+
+- Bookmarks are never permanently deleted — data is always saved in `chrome.storage.local` before any deletion
+- The Recovery tool lets you export a `.html` file to reimport via `chrome://bookmarks → ⋮ → Import bookmarks`
+- When you uninstall the extension, Chrome opens an [uninstall page](https://duyphan1410.github.io/bookmark-hider/uninstall.html) that warns you if bookmarks are still hidden
 
 ## Permissions
 
-- `storage` — save and restore bookmark data
-- `bookmarks` — read, delete, and recreate bookmarks
+| Permission | Why |
+|---|---|
+| `storage` | Save and restore bookmark data locally |
+| `bookmarks` | Read, delete, and recreate bookmarks |
+| `tabs` | Open the Recovery tool in a new tab |
 
-No data is sent anywhere. Everything stays local.
+No data is sent anywhere. Everything stays on your machine.
+
+## Files
+
+```
+bookmark-hider/
+├── manifest.json       — MV3 config
+├── background.js       — service worker, all core logic
+├── popup.html/js       — toggle UI
+├── recovery.html/js    — export saved bookmarks as HTML
+├── uninstall.html      — GitHub Pages uninstall page
+├── generate-icons.html — one-time tool to generate icon PNGs
+└── icons/              — on/off icons at 16/48/128px
+```
 
 ## Browser support
 

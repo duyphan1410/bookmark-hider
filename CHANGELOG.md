@@ -1,86 +1,87 @@
 # Changelog — Bookmark Hider
 
-## Tổng quan các lần thay đổi và lý do
+---
+
+## v1.0.0 — Current release
+
+### Core features
+- Toggle ON/OFF via popup icon
+- Hide bookmarks by serializing full tree to `chrome.storage.local` then deleting from Chrome
+- Restore bookmarks by recreating from saved data — preserves nested folder structure
+- Icon reflects current state (on/off)
+- State persists across browser sessions via `chrome.storage.local`
+
+### Safety & Recovery
+- Recovery tool (`recovery.html`) — accessible from popup when state is ON
+  - Shows bookmark/folder count from saved data
+  - Export as Netscape HTML file for Chrome reimport
+  - Preview full bookmark tree before exporting
+- Uninstall page (`uninstall.html`) hosted on GitHub Pages
+  - Opens automatically when extension is removed
+  - Shows warning if bookmarks were still hidden at time of uninstall (`?state=on`)
+  - Shows safe confirmation if extension was OFF
 
 ---
 
-### v1.0 — Approach ban đầu: Inject CSS (❌ Bị loại bỏ)
+## Development history
 
-**Ý tưởng:** Inject CSS vào trang web để ẩn bookmark suggestions trong omnibox dropdown.
+### Approach 1 — Inject CSS ❌
 
-**Lý do thất bại:**
-- Omnibox dropdown là UI của Chrome browser, không phải DOM của trang web
-- Content script không thể truy cập vào native Chrome UI
-- Không có Extension API nào cho phép can thiệp vào omnibox suggestions
+**Idea:** Inject CSS into web pages to hide bookmark elements in the omnibox dropdown.
 
----
-
-### v2.0 — Approach thứ hai: Move bookmark vào folder ẩn (❌ Bị loại bỏ)
-
-**Ý tưởng:** Dùng `chrome.bookmarks.move` để chuyển toàn bộ bookmark vào folder `_hidden_by_ext`. Chrome sẽ không gợi ý bookmark trong folder đó.
-
-**Lý do thất bại:**
-- Chrome **vẫn index và gợi ý tất cả bookmark** bất kể nằm trong folder nào
-- Move vào subfolder không ẩn được khỏi omnibox
+**Why it failed:** The omnibox dropdown is native Chrome browser UI — not part of any webpage DOM. Content scripts have no access to it and no Chrome Extension API allows manipulation of omnibox suggestions.
 
 ---
 
-### v3.0 — Approach cuối: Xóa bookmark + lưu vào storage (✅ Hoạt động)
+### Approach 2 — Move bookmarks into hidden folder ❌
 
-**Ý tưởng:** Serialize toàn bộ bookmark tree vào `chrome.storage.local`, sau đó xóa hẳn khỏi Chrome. Restore lại bằng cách `chrome.bookmarks.create` từ data đã lưu.
+**Idea:** Use `chrome.bookmarks.move` to move all bookmarks into a folder named `_hidden_by_ext`.
 
-**Tại sao hoạt động:**
-- Chrome chỉ gợi ý bookmark tồn tại thật sự — xóa đi thì omnibox sạch
-- Data được lưu an toàn trong local storage, không mất khi tắt browser
+**Why it failed:** Chrome indexes and suggests **all bookmarks regardless of which folder they're in**. Moving into a subfolder has no effect on omnibox suggestions.
 
 ---
 
-### v3.1 — Fix: "Can't modify the root bookmark folders" khi restore
+### Approach 3 — Delete + save to storage ✅
 
-**Bug:** `restoreBookmarks` cố tạo bookmark vào `parentId: "0"` (virtual root) thay vì `"1"` (Bookmarks Bar) hoặc `"2"` (Other Bookmarks).
+**Idea:** Serialize the full bookmark tree to `chrome.storage.local`, delete all bookmarks from Chrome, then recreate them on restore.
 
-**Nguyên nhân:**
-- `serializeNodes` version cũ lưu cả `parentId` và `index` của từng node
-- Top-level containers (Bookmarks Bar, Other Bookmarks) có `parentId: "0"` — Chrome không cho phép tạo trực tiếp vào root
-
-**Fix:**
-- Đổi format serialize thành `{ bookmarksBar: [...], otherBookmarks: [...] }` — không lưu `parentId`/`index` nữa
-- `restoreBookmarks` recreate thẳng vào `"1"` và `"2"` hardcode
-- Thêm `normalizeStructure()` để đọc được cả data format cũ lẫn mới (backward compatible)
+**Why it works:** Chrome only suggests bookmarks that exist — deleting them removes them from omnibox completely. Data is safe in local storage.
 
 ---
 
-### v3.2 — Fix: Bookmark trong folder lồng nhau bị mất khi restore
+### Bug fixes
 
-**Bug:** Sau khi restore, bookmark nằm trong subfolder biến mất.
+**v3.1 — "Can't modify the root bookmark folders" on restore**
 
-**Nguyên nhân:**
-- `hideBookmarks` dùng `chrome.bookmarks.getChildren("1")` — chỉ lấy 1 cấp top-level, không lấy children của folder con
-- `serializeNodes` không có data để serialize folder lồng nhau
+Cause: `serializeNodes` was saving `parentId: "0"` (virtual root) for top-level containers. Chrome does not allow creating bookmarks directly under the virtual root.
 
-**Fix:**
-- Thay `getChildren` bằng `getSubTree` khi serialize — API này trả về toàn bộ cây đệ quy
-- `serializeNodes` và `recreateNodes` đã đệ quy đúng từ đầu nên chỉ cần fix phần lấy data đầu vào
+Fix: Changed serialize format to `{ bookmarksBar: [...], otherBookmarks: [...] }`. Restore now creates directly into `"1"` (Bookmarks Bar) and `"2"` (Other Bookmarks). Added `normalizeStructure()` for backward compatibility with old data format.
 
 ---
 
-## Permissions cuối cùng
+**v3.2 — Nested bookmarks lost after restore**
+
+Cause: `hideBookmarks` used `chrome.bookmarks.getChildren("1")` which only retrieves one level — children of nested folders were not serialized.
+
+Fix: Replaced with `chrome.bookmarks.getSubTree("1")` which returns the full recursive tree. `serializeNodes` and `recreateNodes` were already recursive so only the data source needed fixing.
+
+---
+
+**v3.3 — CSP error in recovery.html**
+
+Cause: `recovery.html` had an inline `<script>` block — Manifest V3 CSP blocks all inline scripts.
+
+Fix: Extracted all JS into `recovery.js` and referenced it via `<script src="recovery.js">`.
+
+---
+
+## Final permissions
 
 ```json
-"permissions": ["storage", "bookmarks"]
+"permissions": ["storage", "bookmarks", "tabs"]
 ```
 
-- Bỏ `activeTab`, `scripting` so với plan ban đầu — không cần content script
-- Thêm `bookmarks` — cần để đọc/xóa/tạo bookmark
-
-## Files cuối cùng
-
-```
-bookmark-hider/
-├── manifest.json       — MV3, permissions: storage + bookmarks
-├── background.js       — service worker, toàn bộ logic
-├── popup.html          — toggle UI
-├── popup.js            — giao tiếp với background qua message passing
-├── generate-icons.html — tool tạo icon PNG (chạy 1 lần)
-└── icons/              — on/off icons 16/48/128px
-```
+- `storage` — persist state and bookmark tree
+- `bookmarks` — read, delete, recreate bookmarks
+- `tabs` — open recovery.html in a new tab from popup
+- Removed: `activeTab`, `scripting` — no content script needed
