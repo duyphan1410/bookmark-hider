@@ -75,6 +75,20 @@ Fix: Extracted all JS into `recovery.js` and referenced it via `<script src="rec
 
 ---
 
+**v3.4 — Fix: setUninstallURL overwritten in onInstalled**
+
+Cause: `onInstalled` called `updateIcon()` (which sets the URL with `?state=off`) then immediately overwrote it with a plain URL without `?state=`. The state param was always lost on first install.
+
+Fix: Removed the duplicate `setUninstallURL` call from `onInstalled`. The URL is now only set inside `updateIcon()`, ensuring `?state=` is always correct.
+
+---
+
+**v3.5 — Storage limit guard**
+
+Added size check before saving bookmark data to `chrome.storage.local`. If the serialized bookmark tree exceeds 9MB (below Chrome's 10MB hard limit), the operation throws an error and aborts — bookmarks are never deleted. Error is surfaced to the user via the popup.
+
+---
+
 ## Final permissions
 
 ```json

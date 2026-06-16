@@ -184,6 +184,14 @@ async function hideBookmarks() {
             bookmarksBar: serializeNodes(barChildren),
             otherBookmarks: serializeNodes(otherChildren)
         };
+
+        // Kiểm tra storage limit (chrome.storage.local max 10MB)
+        const size = new TextEncoder().encode(JSON.stringify(serialized)).length;
+        console.log(`💾 Storage size: ${(size / 1024).toFixed(1)} KB`);
+        if (size > 9 * 1024 * 1024) {
+            throw new Error("Too many bookmarks to store safely (exceeds 9MB limit)");
+        }
+
         await setStorageData({ [STORAGE_KEYS.originalStructure]: serialized });
 
         // Xóa toàn bộ
@@ -280,9 +288,6 @@ chrome.runtime.onInstalled.addListener(async () => {
         });
     }
     updateIcon(await getState());
-
-    // Khi user gỡ extension, Chrome sẽ mở trang này
-    chrome.runtime.setUninstallURL("https://duyphan1410.github.io/bookmark-hider/uninstall.html");
 });
 
 chrome.runtime.onStartup.addListener(async () => {

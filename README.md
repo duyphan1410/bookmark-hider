@@ -31,6 +31,7 @@ Click the extension icon in the toolbar:
 ## Safety
 
 - Bookmarks are never permanently deleted — data is always saved in `chrome.storage.local` before any deletion
+- Storage size is checked before hiding — if your bookmark data exceeds 9MB, the extension will refuse to proceed and show an error
 - The Recovery tool lets you export a `.html` file to reimport via `chrome://bookmarks → ⋮ → Import bookmarks`
 - When you uninstall the extension, Chrome opens an [uninstall page](https://duyphan1410.github.io/bookmark-hider/uninstall.html) that warns you if bookmarks are still hidden
 
